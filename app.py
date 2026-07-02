@@ -1,8 +1,7 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import time
-import pandas as pd
-from datetime import datetime
+import requests
 
 # Configuración de la página web
 st.set_page_config(
@@ -14,8 +13,6 @@ st.set_page_config(
 R = 0.082  # L·atm/(mol·K)
 
 # Inicializar variables de estado (Session State de Streamlit)
-if "registros" not in st.session_state:
-    st.session_state.registros = []
 if "tiempo_inicio" not in st.session_state:
     st.session_state.tiempo_inicio = None
 if "ejercicio_en_curso" not in st.session_state:
@@ -29,7 +26,7 @@ def linspace(a, b, n):
     if n < 2: return [a]
     return [a + (b - a) * i / (n - 1) for i in range(n)]
 
-# ================== DEFINICIÓN DE LEYES (Tu lógica intacta) ==================
+# ================== DEFINICIÓN DE LEYES ==================
 LEYES = {
     "Boyle (P₁V₁ = P₂V₂)": {
         "vars": ["p1","v1","p2","v2"],
@@ -100,7 +97,7 @@ LEYES = {
     },
 }
 
-# ================== FUNCIONES DE GRAFICACIÓN (Tu lógia intacta) ==================
+# ================== FUNCIONES DE GRAFICACIÓN ==================
 def graficar_boyle(d, objetivo, resultado):
     p1,v1,p2,v2 = d["p1"],d["v1"],d["p2"],d["v2"]
     k = p1*v1
@@ -207,7 +204,7 @@ with st.sidebar:
     st.divider()
     st.markdown("### ⏱️ Control de Cronómetro")
     
-    # Lógica de botones del cronómetro en la barra lateral
+    # Lógica de botones del cronómetro
     if not st.session_state.ejercicio_en_curso:
         if st.button("▶ Iniciar Ejercicio", type="primary", use_container_width=True):
             if not codigo_estudiante.strip():
@@ -244,7 +241,6 @@ st.info(f"**Ecuación base:** ` {ley['ecuacion']} `", icon="💡")
 st.markdown("#### Datos de entrada")
 datos_ingresados = {}
 
-# Crear cuadrícula dinámica para las variables
 columnas_formulario = st.columns(2)
 for index, var in enumerate(ley["vars"]):
     col_destino = columnas_formulario[index % 2]
@@ -252,7 +248,6 @@ for index, var in enumerate(ley["vars"]):
         if var == objetivo:
             st.text_input(f"{ley['labels'][var]} (Resultado)", value="Se calculará automáticamente...", disabled=True)
         else:
-            # Si el ejercicio está en curso, permitimos escribir. Si no, lo bloqueamos.
             deshabilitado = not st.session_state.ejercicio_en_curso
             val = st.number_input(f"Ingrese {ley['labels'][var]}:", value=0.0, step=0.1, min_value=0.0, disabled=deshabilitado, key=f"input_{ley_seleccionada}_{var}")
             datos_ingresados[var] = val if val != 0.0 else None
@@ -260,7 +255,6 @@ for index, var in enumerate(ley["vars"]):
 # --- Botón de Ejecución de Cálculo ---
 if st.session_state.ejercicio_en_curso:
     if st.button("🧮 Calcular Resultado", type="secondary", use_container_width=True):
-        # Validar que no falten datos
         faltan_datos = False
         for v in ley["vars"]:
             if v != objetivo and datos_ingresados.get(v) is None:
@@ -269,40 +263,48 @@ if st.session_state.ejercicio_en_curso:
         
         if not faltan_datos:
             try:
-                # Filtrar el diccionario para los lambdas de cálculo
                 calc_dict = {k: v for k, v in datos_ingresados.items() if v is not None}
                 resultado = ley["calculos"][objetivo](calc_dict)
                 
                 # Calcular Tiempos
                 tiempo_finalizacion = time.time()
                 tiempo_total = tiempo_finalizacion - st.session_state.tiempo_inicio
-                
-                # Guardar en Historial local
                 respuesta_str = f"{resultado:.5g}"
-                st.session_state.registros.append([
-                    codigo_estudiante.strip(), 
-                    carrera, 
-                    ley_seleccionada, 
-                    objetivo.upper(), 
-                    f"{tiempo_total:.2f}", 
-                    respuesta_str
-                ])
+                
+                # ==========================================
+                # Envío silencioso a Google Forms (6 variables)
+                # ==========================================
+                form_url = "https://docs.google.com/forms/d/e/1FAIpQLSelDUqWAKuPihWFDerdoq5_VwzYfwuJpXLrZIuSfK-WHDCpYA/formResponse"
+                
+                payload = {
+                    "entry.913368875": codigo_estudiante.strip(), # A: Código
+                    "entry.2011290175": carrera,                  # B: Carrera
+                    "entry.1519319718": ley_seleccionada,         # C: Ley Evaluada
+                    "entry.1124505437": objetivo.upper(),         # D: Variable Calculada
+                    "entry.812643603": f"{tiempo_total:.2f}",     # E: Tiempo en segundos
+                    "entry.790733520": respuesta_str              # F: Respuesta Obtenida
+                }
+                
+                try:
+                    requests.post(form_url, data=payload, timeout=5)
+                except Exception:
+                    # Si falla el internet momentáneamente, no bloquea al estudiante
+                    pass
+                # ==========================================
                 
                 # Guardar estados para mostrar en pantalla
                 unidad = ley["unidades"][objetivo]
                 st.session_state.resultado_texto = f"✅ **Resultado:** {ley['labels'][objetivo].split('(')[0].strip()} = {respuesta_str} {unidad}  |  ⏱️ **Tiempo total:** {tiempo_total:.2f} s"
                 
-                # Generar datos de gráfica
                 datos_completos = {**calc_dict, objetivo: resultado}
                 st.session_state.grafica_args = ley["grafica"](datos_completos, objetivo, resultado)
                 
-                # Cerrar estado de ejercicio activo
                 st.session_state.ejercicio_en_curso = False
                 st.session_state.tiempo_inicio = None
                 st.rerun()
                 
             except ZeroDivisionError:
-                st.error("❌ Error matemático: División por cero. Revise que los valores ingresados tengan coherencia física.")
+                st.error("❌ Error matemático: División por cero.")
             except Exception as e:
                 st.error(f"❌ Ocurrió un error en el cálculo: {e}")
 else:
@@ -317,25 +319,3 @@ if st.session_state.grafica_args:
     with st.expander("📊 Ver Representación Gráfica", expanded=True):
         data, xl, yl, title = st.session_state.grafica_args
         renderizar_grafica_web(data, xl, yl, title)
-
-# --- Historial y Exportación de Datos ---
-if st.session_state.registros:
-    st.divider()
-    st.markdown("### 📝 Historial de Prácticas de la Sesión")
-    
-    # Crear DataFrame para visualizar bonito
-    df_registros = pd.DataFrame(
-        st.session_state.registros, 
-        columns=["Código Estudiante", "Carrera", "Ley Evaluada", "Variable Calculada", "Tiempo (s)", "Respuesta Obtenida"]
-    )
-    st.dataframe(df_registros, use_container_width=True)
-    
-    # Generar botón nativo de descarga de CSV
-    csv_data = df_registros.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Descargar Reporte en CSV",
-        data=csv_data,
-        file_name=f"reporte_gases_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-        mime="text/csv",
-        use_container_width=True
-    )
