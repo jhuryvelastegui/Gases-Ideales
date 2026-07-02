@@ -10,6 +10,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# --- SISTEMA DE CONTRASEÑA ---
+# La página se detendrá aquí si la clave no es la correcta
+clave_ingresada = st.sidebar.text_input("🔑 Contraseña de acceso:", type="password")
+
+if clave_ingresada != "usfq2026":  # Cambia "usfq2026" por la clave que prefieras
+    st.warning("🛑 Por favor, ingresa la contraseña correcta en el menú lateral para acceder a la calculadora.")
+    st.stop()
+# -----------------------------
+
 R = 0.082  # L·atm/(mol·K)
 
 # Inicializar variables de estado (Session State de Streamlit)
@@ -198,7 +207,7 @@ st.subheader("Módulo de Estudio e Interacción Laboratorial")
 # --- Datos del estudiante ---
 with st.sidebar:
     st.header("Datos del Estudiante")
-    nombre_estudiante = st.text_input("Nombre del estudiante:", placeholder="Ej: Juan Pérez")
+    nombre_estudiante = st.text_input("Ingrese su nombre:", placeholder="Ej: Juan Pérez")
     carrera = st.selectbox("Carrera:", ["IQ", "IB"])
     
     st.divider()
@@ -277,7 +286,7 @@ if st.session_state.ejercicio_en_curso:
                 form_url = "https://docs.google.com/forms/d/e/1FAIpQLSelDUqWAKuPihWFDerdoq5_VwzYfwuJpXLrZIuSfK-WHDCpYA/formResponse"
                 
                 payload = {
-                    "entry.913368875": codigo_estudiante.strip(), # A: Código
+                    "entry.913368875": nombre_estudiante.strip(), # A: Nombre
                     "entry.2011290175": carrera,                  # B: Carrera
                     "entry.1519319718": ley_seleccionada,         # C: Ley Evaluada
                     "entry.1124505437": objetivo.upper(),         # D: Variable Calculada
