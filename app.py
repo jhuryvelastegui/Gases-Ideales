@@ -10,15 +10,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- SISTEMA DE CONTRASEÑA ---
-# La página se detendrá aquí si la clave no es la correcta
-clave_ingresada = st.sidebar.text_input("🔑 Contraseña de acceso:", type="password")
-
-if clave_ingresada != "usfq2026":  # Cambia "usfq2026" por la clave que prefieras
-    st.warning("🛑 Por favor, ingresa la contraseña correcta en el menú lateral para acceder a la calculadora.")
-    st.stop()
-# -----------------------------
-
 R = 0.082  # L·atm/(mol·K)
 
 # Inicializar variables de estado (Session State de Streamlit)
