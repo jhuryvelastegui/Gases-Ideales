@@ -198,7 +198,7 @@ st.subheader("Módulo de Estudio e Interacción Laboratorial")
 # --- Datos del estudiante ---
 with st.sidebar:
     st.header("Datos del Estudiante")
-    codigo_estudiante = st.text_input("Código del estudiante:", placeholder="Ej: 002345")
+    nombre_estudiante = st.text_input("Nombre del estudiante:", placeholder="Ej: Juan Pérez")
     carrera = st.selectbox("Carrera:", ["IQ", "IB"])
     
     st.divider()
@@ -207,8 +207,8 @@ with st.sidebar:
     # Lógica de botones del cronómetro
     if not st.session_state.ejercicio_en_curso:
         if st.button("▶ Iniciar Ejercicio", type="primary", use_container_width=True):
-            if not codigo_estudiante.strip():
-                st.sidebar.error("⚠️ Ingrese el código antes de comenzar.")
+            if not nombre_estudiante.strip():
+                st.sidebar.error("⚠️ Ingrese su nombre antes de comenzar.")
             else:
                 st.session_state.tiempo_inicio = time.time()
                 st.session_state.ejercicio_en_curso = True
