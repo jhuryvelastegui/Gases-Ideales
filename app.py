@@ -10,6 +10,14 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# --- SISTEMA DE CONTRASEÑA ---
+clave_ingresada = st.sidebar.text_input("🔑 Contraseña de acceso:", type="password")
+
+if clave_ingresada != "FIQ2026BIO":
+    st.warning("🛑 Por favor, ingresa la contraseña correcta en el menú lateral para acceder a la calculadora.")
+    st.stop()
+# -----------------------------
+
 R = 0.082  # L·atm/(mol·K)
 
 # Inicializar variables de estado (Session State de Streamlit)
@@ -188,8 +196,9 @@ def renderizar_grafica_web(data, xl, yl, title):
     ax.set_ylabel(yl, fontsize=9, color="#6b7280")
     ax.grid(True, linestyle="--", alpha=0.5, color="#d1d5db")
     ax.legend(fontsize=8)
+    
     st.pyplot(fig)
-    plt.close(fig)
+    plt.close(fig)  # <-- Línea clave para liberar memoria y evitar caídas
 
 # ================== INTERFAZ DE USUARIO (STREAMLIT) ==================
 
