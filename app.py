@@ -189,6 +189,7 @@ def renderizar_grafica_web(data, xl, yl, title):
     ax.grid(True, linestyle="--", alpha=0.5, color="#d1d5db")
     ax.legend(fontsize=8)
     st.pyplot(fig)
+    plt.close(fig)
 
 # ================== INTERFAZ DE USUARIO (STREAMLIT) ==================
 
