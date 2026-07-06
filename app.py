@@ -13,7 +13,7 @@ st.set_page_config(
 # --- SISTEMA DE CONTRASEÑA ---
 clave_ingresada = st.sidebar.text_input("🔑 Contraseña de acceso:", type="password")
 
-if clave_ingresada != "FIQ2026G2":
+if clave_ingresada != "2026FIQ":
     st.warning("🛑 Por favor, ingresa la contraseña correcta en el menú lateral para acceder a la calculadora.")
     st.stop()
 # -----------------------------
