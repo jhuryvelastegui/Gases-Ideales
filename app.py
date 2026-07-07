@@ -10,14 +10,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- SISTEMA DE CONTRASEÑA ---
-clave_ingresada = st.sidebar.text_input("🔑 Contraseña de acceso:", type="password")
-
-if clave_ingresada != "QUIMICAGENERAL":
-    st.warning("🛑 Por favor, ingresa la contraseña correcta en el menú lateral para acceder a la calculadora.")
-    st.stop()
-# -----------------------------
-
 R = 0.082  # L·atm/(mol·K)
 
 # Inicializar variables de estado (Session State de Streamlit)
