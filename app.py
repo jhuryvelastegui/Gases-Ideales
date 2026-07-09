@@ -200,7 +200,7 @@ st.subheader("Módulo de Estudio e Interacción Laboratorial")
 # --- Barra Lateral ---
 with st.sidebar:
     st.markdown("### Instrucciones")
-    st.info("Haga click en el botón rojo que dice iniciar ejercicio, para desbloquear la celdas de ingreso de datos y comenzar la resolución de su ejercicio.")
+    st.info("Haga click en el botón rojo "Iniciar ejercicio", para desbloquear la celdas de ingreso de datos y comenzar la resolución de su ejercicio.")
     
     st.divider()
     st.markdown("### ⏱️ Control de Cronómetro")
@@ -232,7 +232,7 @@ with st.sidebar:
             st.rerun()
 
     # --- Créditos Chiquitos (Footer Lateral) ---
-    st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True) # Espacio para empujarlo abajo
+    st.markdown("<br><br><br><br>", unsafe_allow_html=True) # Espacio para empujarlo abajo
     st.markdown("""
     <div style='font-size: 11px; color: #9ca3af; text-align: left; line-height: 1.4;'>
         J. Velasteguí<br>
