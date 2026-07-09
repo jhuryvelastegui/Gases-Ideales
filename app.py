@@ -190,39 +190,57 @@ def renderizar_grafica_web(data, xl, yl, title):
     ax.legend(fontsize=8)
     
     st.pyplot(fig)
-    plt.close(fig)  # <-- Línea clave para liberar memoria y evitar caídas
+    plt.close(fig)  # Liberar memoria
 
 # ================== INTERFAZ DE USUARIO (STREAMLIT) ==================
 
 st.title("🧪 Leyes de los Gases Ideales")
 st.subheader("Módulo de Estudio e Interacción Laboratorial")
 
-# --- Datos del estudiante ---
+# --- Barra Lateral ---
 with st.sidebar:
-    st.header("Datos del Estudiante")
-    nombre_estudiante = st.text_input("Ingrese su nombre:", placeholder="Ej: Juan Pérez")
-    carrera = st.selectbox("Carrera:", ["IQ", "IB"])
+    st.markdown("### Instrucciones")
+    st.info("Haga click en el botón rojo que dice iniciar ejercicio, para desbloquear la celdas de ingreso de datos y comenzar la resolución de su ejercicio.")
     
     st.divider()
     st.markdown("### ⏱️ Control de Cronómetro")
     
+    # Inyección de CSS para asegurar que el botón de Iniciar sea rojo
+    st.markdown("""
+    <style>
+    div[data-testid="stButton"] button[kind="primary"] {
+        background-color: #dc2626 !important;
+        border-color: #dc2626 !important;
+        color: white !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     # Lógica de botones del cronómetro
     if not st.session_state.ejercicio_en_curso:
         if st.button("▶ Iniciar Ejercicio", type="primary", use_container_width=True):
-            if not nombre_estudiante.strip():
-                st.sidebar.error("⚠️ Ingrese su nombre antes de comenzar.")
-            else:
-                st.session_state.tiempo_inicio = time.time()
-                st.session_state.ejercicio_en_curso = True
-                st.session_state.resultado_texto = ""
-                st.session_state.grafica_args = None
-                st.rerun()
+            st.session_state.tiempo_inicio = time.time()
+            st.session_state.ejercicio_en_curso = True
+            st.session_state.resultado_texto = ""
+            st.session_state.grafica_args = None
+            st.rerun()
     else:
-        st.sidebar.success("⏱️ Ejercicio en curso...")
+        st.success("⏱️ Ejercicio en curso...")
         if st.button("⏹️ Cancelar Tiempo", use_container_width=True):
             st.session_state.tiempo_inicio = None
             st.session_state.ejercicio_en_curso = False
             st.rerun()
+
+    # --- Créditos Chiquitos (Footer Lateral) ---
+    st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True) # Espacio para empujarlo abajo
+    st.markdown("""
+    <div style='font-size: 11px; color: #9ca3af; text-align: left; line-height: 1.4;'>
+        J. Velasteguí<br>
+        M. Quijia<br>
+        D. Pila<br>
+        Universidad Central del Ecuador
+    </div>
+    """, unsafe_allow_html=True)
 
 # --- Configuración del problema ---
 col_ley, col_var = st.columns(2)
@@ -256,7 +274,7 @@ for index, var in enumerate(ley["vars"]):
 
 # --- Botón de Ejecución de Cálculo ---
 if st.session_state.ejercicio_en_curso:
-    if st.button("🧮 Calcular Resultado", type="secondary", use_container_width=True):
+    if st.button("🧮 Calcular Resultado", use_container_width=True):
         faltan_datos = False
         for v in ley["vars"]:
             if v != objetivo and datos_ingresados.get(v) is None:
@@ -279,8 +297,8 @@ if st.session_state.ejercicio_en_curso:
                 form_url = "https://docs.google.com/forms/d/e/1FAIpQLSelDUqWAKuPihWFDerdoq5_VwzYfwuJpXLrZIuSfK-WHDCpYA/formResponse"
                 
                 payload = {
-                    "entry.913368875": nombre_estudiante.strip(), # A: Nombre
-                    "entry.2011290175": carrera,                  # B: Carrera
+                    "entry.913368875": "Anónimo",                 # A: Nombre (Ya no se pide)
+                    "entry.2011290175": "N/A",                    # B: Carrera (Ya no se pide)
                     "entry.1519319718": ley_seleccionada,         # C: Ley Evaluada
                     "entry.1124505437": objetivo.upper(),         # D: Variable Calculada
                     "entry.812643603": f"{tiempo_total:.2f}",     # E: Tiempo en segundos
@@ -290,7 +308,6 @@ if st.session_state.ejercicio_en_curso:
                 try:
                     requests.post(form_url, data=payload, timeout=5)
                 except Exception:
-                    # Si falla el internet momentáneamente, no bloquea al estudiante
                     pass
                 # ==========================================
                 
